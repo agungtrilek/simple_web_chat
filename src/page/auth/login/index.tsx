@@ -1,24 +1,46 @@
 import { Button, Modal } from "flowbite-react";
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useHooks from "../../../Hook/useHooks";
-import { loginWithEmail } from "../../../firebase/fireauth/loginWithEmail";
 import Input from "../../../components/common/form/Input";
 import Title from "../../../components/common/form/Title";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../../../firebase/config/firebase";
+import { useNavigate } from "react-router-dom";
+import {
+  loginWithEmail,
+  loginWithGoogle,
+} from "../../../firebase/fireauth/Auth";
 
-export default function Index() {
+export default function Login() {
   const emailInputRef = useRef<HTMLInputElement>(null);
-  const { email, password, setEmail, setPassword, setError, navigate } =
-    useHooks();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Pantau status autentikasi
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        navigate("/dashboard"); // Arahkan ke dashboard jika login
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     try {
+      console.log("mencoba login");
       await loginWithEmail(email, password);
       navigate("/dashboard");
-    } catch (error: any) {
-      setError(error.message);
+      console.log("login berhasil");
+    } catch (error) {
+      setError(error);
+      console.log("gagal login", error);
     }
   };
 
@@ -30,6 +52,7 @@ export default function Index() {
           className="text-3xl font-bold text-green-400 py-6"
         />
         <form className="space-y-3" onSubmit={handleLogin}>
+          {error && <p className="text-red-500">("gagal login", error)</p>}
           <Input
             id="email"
             ValueLabel="Email"
@@ -51,7 +74,17 @@ export default function Index() {
           <Button type="submit">Log in to your account</Button>
         </form>
       </Modal.Body>
-      <Modal.Footer></Modal.Footer>
+      <Modal.Footer className="self-center">
+        <Button onClick={loginWithGoogle}>Log in With Google</Button>
+        <Button>
+          <a
+            href="/registration"
+            className=" hover:underline dark:text-cyan-500"
+          >
+            Registration
+          </a>
+        </Button>
+      </Modal.Footer>
     </Modal>
   );
 }

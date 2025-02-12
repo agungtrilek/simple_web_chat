@@ -1,14 +1,30 @@
 import { Button, Card, Modal } from "flowbite-react";
 import React, { useState } from "react";
-import ButtonComp from "../../../../components/common/form/Button";
-import useHooks from "../../../../Hook/useHooks";
-import Profile from "../profile";
-import useFriends from "../../../../Hook/useAddFriend";
+import ButtonComp from "../../../components/common/form/Button";
+import useHooks from "../../../Hook/useHooks";
+import Profile from "./UserName";
+import useFriends from "../../../Hook/useAddFriend";
+import { addFriend } from "../../../firebase/firestore/friends";
+import { auth } from "../../../firebase/config/firebase";
+import useFetchUsers from "./use-fetch-users";
 
 export default function AddFriend() {
   const [openModal, setOpenModal] = useState(false);
-  const { usersChat, userAuth } = useHooks();
-  const { handleAddFriend } = useFriends();
+
+  const usersChat = useFetchUsers();
+
+  const userId = auth.currentUser;
+
+  const handleAddFriend = async (uidUser: string) => {
+    try {
+      console.log("loading menambahkan teman");
+      await addFriend(uidUser);
+      console.log("teman berhasil ditambahkan");
+    } catch (error) {
+      console.error("gagal menambahkan teman", error);
+    }
+  };
+
   return (
     <div className="flex justify-center ">
       <ButtonComp type="button" onClick={() => setOpenModal(true)}>
@@ -27,9 +43,9 @@ export default function AddFriend() {
               >
                 {user.teman &&
                 user.teman.length > 0 &&
-                user.teman.find((id) => id === userAuth?.uid)
-                  ? "teman"
-                  : "bukan teman"}
+                user.teman.find((id) => id === userId?.uid) // harusnya menangkap punya teman juga
+                  ? "Teman"
+                  : "Tambah Pertemanan"}
               </ButtonComp>
             </Profile>
           ))}

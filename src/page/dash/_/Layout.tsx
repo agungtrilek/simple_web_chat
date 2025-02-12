@@ -7,6 +7,8 @@ export default function LayoutDashboard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={clsx("flex flex-row w-full h-screen ")}>{children}</div>
+    <div className={"sm:flex block sm:flex-row w-full h-screen "}>
+      {children}
+    </div>
   );
 }
